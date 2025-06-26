@@ -1,3 +1,5 @@
 dummy_data/
 *.npy
 __pycache__/
+aa
+aa.ipynb
