@@ -3,3 +3,6 @@ dummy_data/
 __pycache__/
 aa
 aa.ipynb
+pdf/
+data_generation/data/
+
