@@ -4,5 +4,7 @@ __pycache__/
 aa
 aa.ipynb
 pdf/
-data_generation/data/
+data_generation/
+dummy_data.py
+DOMANDE.ipynb
 
