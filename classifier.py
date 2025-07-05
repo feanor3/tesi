@@ -21,7 +21,7 @@ def add_bias(X, bias):
     # Concatenate the column of biases in front of the columns of X.
     return np.concatenate((biases, X), axis  = 1) 
 
-class MLPBinaryLinRegClass():
+class MLPBinary():
     """A multi-layer neural network with one hidden layer"""
     
     def __init__(self, bias=-1, dim_hidden = 6, tolerance=1e-4):
@@ -62,8 +62,8 @@ class MLPBinaryLinRegClass():
         current_epochs_no_update = 0
         t_start = time.time()
         
-        self.val_loss = val_loss=[]
-        self.val_acc = val_acc=[]
+        self.val_loss = val_loss = []
+        self.val_acc = val_acc = []
 
         # Turn t_train into a column vector, a N*1 matrix:
         T_train = t_train.reshape(-1,1)
@@ -114,12 +114,12 @@ class MLPBinaryLinRegClass():
                 val_loss.append(z)
                 val_acc.append(accuracy(self.predict(X_val), t_val))
 
-            if e > 0 and abs(train_loss[e-1]-train_loss[e]) < self.tol:
-                current_epochs_no_update += 1
-                if current_epochs_no_update > n_epochs_no_update:
-                    #print("Classifier trained for epochs: ", #self.epochs)
-                    break
-                
+                if e > 0 and abs(val_loss[e-1]-val_loss[e]) < self.tol:
+                    current_epochs_no_update += 1
+                    if current_epochs_no_update > n_epochs_no_update:
+                        #print("Classifier trained for epochs: ", #self.epochs)
+                        break
+                    
             self.epochs += 1
 
 
