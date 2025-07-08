@@ -48,7 +48,18 @@ def resize_data_test(L):
     df.drop(labels=L, axis=1, inplace=True)
 
     
+    ''' # imporved version of loops from chatgpt
+    # Number of configurations generated at different temperatures
+    n = df.shape[0] // (L * N)
 
+    # Reshape the DataFrame into (N, n, L, L)
+    data_reshaped = df.to_numpy().reshape(N, n, L, L)
+    data = data_reshaped.reshape(N, n, L * L)
+
+    # Reshape temperature array accordingly
+    temp = np.array(t).reshape(N, n, L)[:, :, 0]  # take the first row per configuration as representative
+
+    '''
     # Creating numpy array where each element is a lattice configuration
     # c++ code creates (L*temperatures, L) csv file
 
@@ -75,4 +86,3 @@ def resize_data_test(L):
     np.save(f"data/{L}_test", data)
     np.save(f"data/{L}_test_temp", temp)
 
-resize_data_test(20)
