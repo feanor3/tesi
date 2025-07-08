@@ -51,7 +51,7 @@ class MLPBinary():
         
         hidden_outs = self.activ(X @ self.weights1)
         hidden_outs_bias = add_bias(hidden_outs, self.bias)
-        outputs = hidden_outs_bias @ self.weights2 
+        outputs = logistic(hidden_outs_bias @ self.weights2)
        
         return hidden_outs_bias, outputs
 
