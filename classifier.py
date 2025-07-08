@@ -11,6 +11,12 @@ def logistic(x):
 def logistic_diff(y):
     return y * (1 - y)
 
+def relu(x):
+    return np.where(x<0, 0, x)
+
+def relu_diff(x):
+    return np.where(x<0, 0, 1)
+
 def add_bias(X, bias):
     """X is a NxM matrix: N datapoints, M features
     bias is a bias term, -1 or 1, or any other scalar. Use 0 for no bias
@@ -24,16 +30,18 @@ def add_bias(X, bias):
 class MLPBinary():
     """A multi-layer neural network with one hidden layer"""
     
-    def __init__(self, bias=-1, dim_hidden = 6, tolerance=1e-4):
+    def __init__(self, bias=-1, dim_hidden = 6, tolerance=1e-4, activation='relu'):
         """Intialize the hyperparameters"""
         self.bias = bias
         # Dimensionality of the hidden layer
         self.dim_hidden = dim_hidden
-
         self.epochs = 0
         self.tol = tolerance
-        self.activ = logistic       
-        self.activ_diff = logistic_diff
+        
+        if activation == 'relu':
+            self.activ = relu     
+            self.activ_diff = relu_diff
+
         
     def forward(self, X):
         """ 
