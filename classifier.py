@@ -30,7 +30,7 @@ def add_bias(X, bias):
 class MLPBinary():
     """A multi-layer neural network with one hidden layer"""
     
-    def __init__(self, bias=-1, dim_hidden = 6, tolerance=1e-4, activation='relu', solver='sgd', lr = 1e-4, batch_size=100, epochs=100, n_epochs_no_update = 2, momentum = 0.9):
+    def __init__(self, bias=-1, dim_hidden = 6, tolerance=1e-4, activation='relu', solver='sgd', lr = 1e-4, batch_size=100, epochs=100, n_epochs_no_update = 2, momentum = 0.9, alpha=1e-3):
         """Intialize the hyperparameters"""
         self.bias = bias
         # Dimensionality of the hidden layer
@@ -45,6 +45,7 @@ class MLPBinary():
         self.momentum = momentum # momentum coefficient
         self.m1 = 0 # initialize momentum vector to 0
         self.m2 = 0
+        self.alpha = 1e-3
         
         if activation == 'relu':
             self.activ = relu     
@@ -113,25 +114,35 @@ class MLPBinary():
                 break
             
             if self.solver == 'sgd':
-                
                 # selecting random elements of X_train_bias as batch
-                idx = np.random.randint(0, self.N, self.batch_size)
-                X_batch = X_train[idx, :]
-                T_batch = T_train[idx]
-                
+                idx = np.random.permutation(self.N )
+                X_shuffled = X_train[idx,:]
+                T_shuffled = T_train[idx]
 
-                self.update(X_batch, T_batch)
+                # should be improved if N//batch_size != 0
+                for i in range(0, self.N, self.batch_size):
+                    X_batch = X_shuffled[i:i+self.batch_size, :]
+                    T_batch = T_shuffled[i:i+self.batch_size, :]
+                
+                    self.update(X_batch, T_batch)
             else:
                 self.update(X_train, T_train)
 
-            
+            # Loss and accuracy
+            acc = accuracy(self.predict(X_train), T_train)
+            self.train_acc.append(acc)
+
+            loss = self.compute_loss(self.predict_probabilities(X_train), T_train)
+            self.train_loss.append(loss)
 
             if X_val is not None:
                 z = self.compute_loss(self.predict_probabilities(X_val), t_val)
                 val_loss.append(z)
                 val_acc.append(accuracy(self.predict(X_val), t_val))
+                best_loss = min(val_loss)
 
-                if e > 0 and abs(val_loss[e-1]-val_loss[e]) < self.tol:
+                if e > 10 and abs(val_loss[e-1]-val_loss[e]) < self.tol:
+
                     current_epochs_no_update += 1
                     if current_epochs_no_update > self.n_epochs_no_update:
                         #print("Classifier trained for epochs: ", #self.epochs)
@@ -165,8 +176,8 @@ class MLPBinary():
 
             # Update the weights:
             if self.solver == 'sgd':
-                self.m1 += self.momentum * self.m1 - self.lr * grad1
-                self.m2 += self.momentum * self.m2 - self.lr* grad2
+                self.m1 = self.momentum * self.m1 - self.lr * grad1
+                self.m2 = self.momentum * self.m2 - self.lr * grad2
     
                 self.weights1 +=  self.m1
                 self.weights2 +=  self.m2
@@ -174,12 +185,7 @@ class MLPBinary():
                 self.weights1 -= self.lr * grad1
                 self.weights2 -= self.lr * grad2
 
-            # Loss and accuracy
-            acc = accuracy(self.predict(X), t_train)
-            self.train_acc.append(acc)
-
-            loss = self.compute_loss(self.predict_probabilities(X), t_train)
-            self.train_loss.append(loss)
+           
 
     def compute_loss(self, y, t):
         """
@@ -187,9 +193,10 @@ class MLPBinary():
         y: Predicted values
         t: Target values
         """
-        # Mean Squared Error, t = target, y = predicted
+        '''# Mean Squared Error, t = target, y = predicted
         a = 0.5 * np.mean((y - t) ** 2)
-        return a
+        return a'''
+        return -np.mean(t * np.log(y) + (1 - t) * np.log(1 - y))
 
     def predict_probabilities(self, x):
         _, prob = self.forward(add_bias(x, self.bias))
