@@ -42,7 +42,9 @@ class MLPBinary():
         self.n_epochs_no_update = n_epochs_no_update
         self.solver = solver
         self.batch_size = batch_size
-        self.momentum = momentum
+        self.momentum = momentum # momentum coefficient
+        self.m1 = 0 # initialize momentum vector to 0
+        self.m2 = 0
         
         if activation == 'relu':
             self.activ = relu     
@@ -111,14 +113,16 @@ class MLPBinary():
                 break
             
             if self.solver == 'sgd':
+                
                 # selecting random elements of X_train_bias as batch
                 idx = np.random.randint(0, self.N, self.batch_size)
                 X_batch = X_train[idx, :]
                 T_batch = T_train[idx]
+                
 
                 self.update(X_batch, T_batch)
             else:
-                self.update(X_train, t_train)
+                self.update(X_train, T_train)
 
             
 
@@ -134,7 +138,6 @@ class MLPBinary():
                         break
                     
             self.epochs += 1
-
 
     def update(self, X, t_train):
             ''''X unbiased data, T_train gold value'''
@@ -152,9 +155,24 @@ class MLPBinary():
             hiddenact_deltas = (hiddenout_diffs[:, 1:] * 
                                 self.activ_diff(hidden_outs[:, 1:]))  
 
+            grad1 = X_bias.T @ hiddenact_deltas
+            grad2 = hidden_outs.T @ out_deltas
+
+            if self.epochs == 0:
+                self.m1 = grad1
+                self.m2 = grad2
+
+
             # Update the weights:
-            self.weights2 -= self.lr * hidden_outs.T @ out_deltas
-            self.weights1 -= self.lr * X_bias.T @ hiddenact_deltas 
+            if self.solver == 'sgd':
+                self.m1 += self.momentum * self.m1 - self.lr * grad1
+                self.m2 += self.momentum * self.m2 - self.lr* grad2
+    
+                self.weights1 +=  self.m1
+                self.weights2 +=  self.m2
+            else:                
+                self.weights1 -= self.lr * grad1
+                self.weights2 -= self.lr * grad2
 
             # Loss and accuracy
             acc = accuracy(self.predict(X), t_train)
@@ -185,7 +203,7 @@ class MLPBinary():
         return (score > 0.5)
     
     def score(self, X, t):
-        '''return accuracy of X againt label t'''
+        '''return accuracy of X against label t'''
         # predicted values:
         y = self.predict(X)
         return accuracy(y, t)
