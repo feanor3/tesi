@@ -44,8 +44,8 @@ class MLPBinary():
         self.solver = solver
         self.batch_size = batch_size
         self.momentum = momentum # momentum coefficient
-        self.m1 = 0 # initialize momentum vector to 0
-        self.m2 = 0
+        self.m1 = np.zeros_like(self.weights1) # initialize momentum vector to 0
+        self.m2 = np.zeros_like(self.weights2)
         self.alpha = alpha # strength of regularization term
         self.tau= tau
     
@@ -215,4 +215,4 @@ class MLPBinary():
         y = self.predict(X)
         return accuracy(y, t)
 
-    
+
