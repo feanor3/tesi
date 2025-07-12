@@ -161,7 +161,7 @@ class MLPBinary():
     
                 self.weights1 +=  self.m1
                 self.weights2 +=  self.m2
-                self.update_lr
+                self.update_lr()
             else:                
                 self.weights1 -= self.lr * grad1
                 self.weights2 -= self.lr * grad2
