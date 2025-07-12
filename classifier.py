@@ -44,8 +44,6 @@ class MLPBinary():
         self.solver = solver
         self.batch_size = batch_size
         self.momentum = momentum # momentum coefficient
-        self.m1 = np.zeros_like(self.weights1) # initialize momentum vector to 0
-        self.m2 = np.zeros_like(self.weights2)
         self.alpha = alpha # strength of regularization term
         self.tau= tau
     
@@ -93,6 +91,9 @@ class MLPBinary():
             self.dim_hidden+1, 
             dim_out) * 2 - 1)/np.sqrt(self.dim_hidden)
         
+        # initialize momentum vector to 0
+        self.m1 = np.zeros_like(self.weights1) 
+        self.m2 = np.zeros_like(self.weights2)
         
         for e in range(self.epochs):
 
@@ -110,6 +111,9 @@ class MLPBinary():
                     T_batch = T_train[idx[i:i+self.batch_size]]
 
                     self.update(X_batch, T_batch)
+
+                self.update_lr()
+                
             else:
                 self.update(X_train, T_train)
 
@@ -161,7 +165,7 @@ class MLPBinary():
     
                 self.weights1 +=  self.m1
                 self.weights2 +=  self.m2
-                self.update_lr()
+               
             else:                
                 self.weights1 -= self.lr * grad1
                 self.weights2 -= self.lr * grad2
