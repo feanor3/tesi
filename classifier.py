@@ -48,6 +48,7 @@ class MLPBinary():
         self.m2 = 0
         self.alpha = alpha # strength of regularization term
         self.tau= tau
+    
         
         if activation == 'relu':
             self.activ = relu     
@@ -100,18 +101,24 @@ class MLPBinary():
                 break
             
             if self.solver == 'sgd':
-                
                 # selecting random elements of X_train_bias as batch
-                idx = np.random.randint(0, self.N, self.batch_size)
-                X_batch = X_train[idx, :]
-                T_batch = T_train[idx]
+                idx = np.random.permutation(self.N)
                 
+                # this ensures that training is done over all data per epoch
+                for i in range(0, self.N, self.batch_size):
+                    X_batch = X_train[idx[i:i+self.batch_size], :]
+                    T_batch = T_train[idx[i:i+self.batch_size]]
 
-                self.update(X_batch, T_batch)
+                    self.update(X_batch, T_batch)
             else:
                 self.update(X_train, T_train)
 
-            
+            # Loss and accuracy
+            acc = accuracy(self.predict(X_train), t_train)
+            self.train_acc.append(acc)
+
+            loss = self.compute_loss(self.predict_probabilities(X_train), t_train)
+            self.train_loss.append(loss)
 
             if X_val is not None:
                 z = self.compute_loss(self.predict_probabilities(X_val), t_val)
@@ -159,12 +166,7 @@ class MLPBinary():
                 self.weights1 -= self.lr * grad1
                 self.weights2 -= self.lr * grad2
 
-            # Loss and accuracy
-            acc = accuracy(self.predict(X), t_train)
-            self.train_acc.append(acc)
-
-            loss = self.compute_loss(self.predict_probabilities(X), t_train)
-            self.train_loss.append(loss)
+            
 
     def update_lr(self):
         """
