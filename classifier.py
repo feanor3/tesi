@@ -30,7 +30,7 @@ def add_bias(X, bias):
 class MLPBinary():
     """A multi-layer neural network with one hidden layer"""
     
-    def __init__(self, bias=-1, dim_hidden = 6, tolerance=1e-4, activation='relu', solver='sgd', lr = 1e-4, batch_size=100, epochs=100, n_epochs_no_update = 2, momentum = 0.9):
+    def __init__(self, bias=-1, dim_hidden = 6, tolerance=1e-4, activation='relu', solver='sgd', lr = 1e-4, batch_size=100, epochs=100, n_epochs_no_update = 2, momentum = 0.9, alpha=1e-3):
         """Intialize the hyperparameters"""
         self.bias = bias
         # Dimensionality of the hidden layer
@@ -45,6 +45,7 @@ class MLPBinary():
         self.momentum = momentum # momentum coefficient
         self.m1 = 0 # initialize momentum vector to 0
         self.m2 = 0
+        self.alpha = alpha # strength of regularization term
         
         if activation == 'relu':
             self.activ = relu     
@@ -52,11 +53,6 @@ class MLPBinary():
         elif activation == 'logistic':
             self.activ = logistic     
             self.activ_diff = logistic_diff
-
-        
-
-
-
         
     def forward(self, X):
         """ 
@@ -158,15 +154,12 @@ class MLPBinary():
             grad1 = X_bias.T @ hiddenact_deltas
             grad2 = hidden_outs.T @ out_deltas
 
-            if self.epochs == 0:
-                self.m1 = grad1
-                self.m2 = grad2
 
 
             # Update the weights:
             if self.solver == 'sgd':
-                self.m1 += self.momentum * self.m1 - self.lr * grad1
-                self.m2 += self.momentum * self.m2 - self.lr* grad2
+                self.m1 = self.momentum * self.m1 - self.lr * (grad1 / self.batch_size + self.alpha*self.weights1)
+                self.m2 = self.momentum * self.m2 - self.lr* (grad2 / self.batch_size + self.alpha*self.weights2)
     
                 self.weights1 +=  self.m1
                 self.weights2 +=  self.m2
