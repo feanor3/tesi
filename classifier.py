@@ -30,7 +30,7 @@ def add_bias(X, bias):
 class MLPBinary():
     """A multi-layer neural network with one hidden layer"""
     
-    def __init__(self, bias=-1, dim_hidden = 6, tolerance=1e-4, activation='relu', solver='sgd', lr = 1e-4, batch_size=100, epochs=100, n_epochs_no_update = 2, momentum = 0.9, alpha=1e-3):
+    def __init__(self, bias=-1, dim_hidden = 6, tolerance=1e-4, activation='relu', solver='sgd', lr = 1e-4, batch_size=100, epochs=100, n_epochs_no_update = 2, momentum = 0.9, alpha=1e-3, tau=50):
         """Intialize the hyperparameters"""
         self.bias = bias
         # Dimensionality of the hidden layer
@@ -38,6 +38,7 @@ class MLPBinary():
         self.epochs = 0
         self.tol = tolerance
         self.lr = lr
+        self.lr_initial = lr
         self.epochs = epochs
         self.n_epochs_no_update = n_epochs_no_update
         self.solver = solver
@@ -46,6 +47,7 @@ class MLPBinary():
         self.m1 = 0 # initialize momentum vector to 0
         self.m2 = 0
         self.alpha = alpha # strength of regularization term
+        self.tau= tau
         
         if activation == 'relu':
             self.activ = relu     
@@ -54,17 +56,6 @@ class MLPBinary():
             self.activ = logistic     
             self.activ_diff = logistic_diff
         
-    def forward(self, X):
-        """ 
-        Perform one forward step. 
-        Return a pair consisting of the outputs of the hidden_layer
-        and the outputs on the final layer"""
-        
-        hidden_outs = self.activ(X @ self.weights1)
-        hidden_outs_bias = add_bias(hidden_outs, self.bias)
-        outputs = logistic(hidden_outs_bias @ self.weights2)
-       
-        return hidden_outs_bias, outputs
 
     def fit(self, X_train, t_train, X_val=None, t_val=None):
         """Initialize the weights. Train *epochs* many epochs.
@@ -163,6 +154,7 @@ class MLPBinary():
     
                 self.weights1 +=  self.m1
                 self.weights2 +=  self.m2
+                self.update_lr
             else:                
                 self.weights1 -= self.lr * grad1
                 self.weights2 -= self.lr * grad2
@@ -173,6 +165,26 @@ class MLPBinary():
 
             loss = self.compute_loss(self.predict_probabilities(X), t_train)
             self.train_loss.append(loss)
+
+    def update_lr(self):
+        """
+        decrease learnign rate after patience???"""
+        #self.lr = self.lr /  (self.epochs ** self.power_t)
+        tau = self.tau
+        if self.epochs < tau:
+            self.lr = (1-self.epochs / tau) * self.lr_initial + self.epochs/tau * 0.01*self.lr_initial
+
+    def forward(self, X):
+        """ 
+        Perform one forward step. 
+        Return a pair consisting of the outputs of the hidden_layer
+        and the outputs on the final layer"""
+        
+        hidden_outs = self.activ(X @ self.weights1)
+        hidden_outs_bias = add_bias(hidden_outs, self.bias)
+        outputs = logistic(hidden_outs_bias @ self.weights2)
+       
+        return hidden_outs_bias, outputs
 
     def compute_loss(self, y, t):
         """
