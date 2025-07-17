@@ -30,7 +30,7 @@ def add_bias(X, bias):
 class MLPBinary():
     """A multi-layer neural network with one hidden layer"""
     
-    def __init__(self, bias=-1, dim_hidden = 6, tolerance=1e-4, activation='relu', solver='sgd', lr = 1e-4, batch_size=100, epochs=100, n_epochs_no_update = 2, momentum = 0.9, alpha=1e-3, tau=50):
+    def __init__(self, bias=-1, dim_hidden = 6, tolerance=1e-4, activation='relu', solver='sgd', lr = 1e-4, batch_size=100, epochs=100, n_epochs_no_update = 2, momentum = 0.9, alpha=1e-3, power_t = 0.001):
         """Intialize the hyperparameters"""
         self.bias = bias
         # Dimensionality of the hidden layer
@@ -45,7 +45,8 @@ class MLPBinary():
         self.batch_size = batch_size
         self.momentum = momentum # momentum coefficient
         self.alpha = alpha # strength of regularization term
-        self.tau= tau
+        # self.tau= tau
+        self.power_t = power_t
     
         
         if activation == 'relu':
@@ -164,7 +165,7 @@ class MLPBinary():
             # Update the weights:
             if self.solver == 'sgd':
                 self.m1 = self.momentum * self.m1 - self.lr * (grad1 / self.batch_size + self.alpha*self.weights1)
-                self.m2 = self.momentum * self.m2 - self.lr* (grad2 / self.batch_size + self.alpha*self.weights2)
+                self.m2 = self.momentum * self.m2 - self.lr * (grad2 / self.batch_size + self.alpha*self.weights2)
     
                 self.weights1 +=  self.m1
                 self.weights2 +=  self.m2
@@ -177,12 +178,13 @@ class MLPBinary():
 
     def update_lr(self):
         """
-        decrease learnign rate after patience???"""
+        decrease learnign rate after patience"""
         #self.lr = self.lr /  (self.epochs ** self.power_t)
-        tau = self.tau
-        patience = 5
-        if self.epochs < tau and self.epochs > patience:
-            self.lr = (1-self.epochs / tau) * self.lr_initial + self.epochs/tau * 0.01*self.lr_initial
+        #tau = self.tau
+        #patience = 5
+        #if self.epochs < tau and self.epochs > patience:
+            #self.lr = (1-self.epochs / tau) * self.lr_initial + self.epochs/tau * 0.01*self.lr_initial
+        self.lr = self.lr_initial / pow(self.epochs,  self.power_t)
 
     def forward(self, X):
         """ 
@@ -198,13 +200,13 @@ class MLPBinary():
 
     def compute_loss(self, y, t):
         """
-        Compute the mean squared error loss.
-        y: Predicted values
-        t: Target values
+        Compute the binary cross-entropy loss.
+        y: Predicted probabilities (after sigmoid), shape (N, 1)
+        t: Target values (0 or 1)
         """
-        # Mean Squared Error, t = target, y = predicted
-        a = 0.5 * np.mean((y - t) ** 2)
-        return a
+        eps = 1e-12  # to avoid log(0)
+        y = np.clip(y, eps, 1 - eps)
+        return -np.mean(t * np.log(y) + (1 - t) * np.log(1 - y))
 
     def predict_probabilities(self, x):
         _, prob = self.forward(add_bias(x, self.bias))
