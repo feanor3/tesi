@@ -84,12 +84,15 @@ class MLPBinary():
         dim_out = T_train.shape[1]
         
         # Initialize the weights
-        self.weights1 = (np.random.rand(
-            dim_in + 1, 
-            self.dim_hidden) * 2 - 1)/np.sqrt(dim_in)
-        self.weights2 = (np.random.rand( #final layer
-            self.dim_hidden+1, 
-            dim_out) * 2 - 1)/np.sqrt(self.dim_hidden)
+        # accoding to Glorot et al.
+        factor = 6.0
+        np.random.seed(25080)
+
+        init_bound = np.sqrt(factor / (dim_in + 1 + self.dim_hidden +1))
+        self.weights1 = np.random.uniform(-init_bound, init_bound, (dim_in +1, self.dim_hidden))
+                                        
+        init_bound = np.sqrt(factor / (self.dim_hidden + 1 + dim_out))                               
+        self.weights2 = np.random.uniform(-init_bound, init_bound, (self.dim_hidden +1, dim_out))
         
         # initialize momentum vector to 0
         self.m1 = np.zeros_like(self.weights1) 
@@ -177,7 +180,8 @@ class MLPBinary():
         decrease learnign rate after patience???"""
         #self.lr = self.lr /  (self.epochs ** self.power_t)
         tau = self.tau
-        if self.epochs < tau:
+        patience = 5
+        if self.epochs < tau and self.epochs > patience:
             self.lr = (1-self.epochs / tau) * self.lr_initial + self.epochs/tau * 0.01*self.lr_initial
 
     def forward(self, X):
