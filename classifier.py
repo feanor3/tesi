@@ -137,6 +137,11 @@ class MLPBinary():
                     if current_epochs_no_update > self.n_epochs_no_update:
                         #print("Classifier trained for epochs: ", #self.epochs)
                         break
+                else: 
+                    current_epochs_no_update = 0
+                
+            if e > 3 and val_loss[e] > min(val_loss) + 1e-3:
+                break
             
             
             self.t_ += self.N # adding datapoints
