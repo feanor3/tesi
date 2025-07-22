@@ -48,6 +48,7 @@ class MLPBinary():
         # self.tau= tau
         self.power_t = power_t
         self.t_ = 0 # base for lr update
+        self.t_ = 0 # base for lr update
     
         
         if activation == 'relu':
@@ -184,6 +185,7 @@ class MLPBinary():
             
 
     def update_lr(self, time_step):
+    def update_lr(self, time_step):
         """
         decrease learnign rate after patience"""
         #self.lr = self.lr /  (self.epochs ** self.power_t)
@@ -191,6 +193,7 @@ class MLPBinary():
         #patience = 5
         #if self.epochs < tau and self.epochs > patience:
             #self.lr = (1-self.epochs / tau) * self.lr_initial + self.epochs/tau * 0.01*self.lr_initial
+        self.lr = self.lr_initial / pow(time_step,  self.power_t)
         self.lr = self.lr_initial / pow(time_step,  self.power_t)
 
     def forward(self, X):

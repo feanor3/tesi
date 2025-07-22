@@ -9,3 +9,5 @@ dummy_data.py
 DOMANDE.ipynb
 *.csv
 *png
+*.txt
+*.json
