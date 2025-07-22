@@ -4,7 +4,7 @@ import sys
 from classifier import MLPBinary
 
 # LOADING TEST DATA
-L = sys.argv[1]
+L = int(sys.argv[1])
 print(L)
 T_CRIT = 2.2691853 # k_b * T_C / J  with k_b=1, J = interaction constant
 
@@ -73,7 +73,7 @@ for dim in dimensions:
     acc = clf.score(flattened, t_test.reshape(-1,))
 
     accuracy.append(np.mean(acc)) # append mean and std of the 
-    acc_std.append(np.std(acc, ddof=1) / np.sqrt(len(acc)))
+    acc_std.append(np.std(acc, ddof=1) / np.sqrt(10))
 
     print(f"Trained classifer dim_hidden = {dim}")
 
