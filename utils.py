@@ -192,3 +192,25 @@ def load_train_data(L, mode='all'):
         t_test = (temp_test > T_CRIT).astype(int)
 
         return data_train, t_train, data_val, t_val, data_test, t_test
+    
+
+def get_training_data(data, t, fraction):
+    "data, t = label, fraction = franction of validation set"
+    # DATA Shuffling
+    rng = np.random.default_rng()
+    indices = np.arange(data.shape[0])
+    rng.shuffle(indices)
+    n = data.shape[0]
+    data = data[indices]
+    t = t[indices]
+    #temps = temps[indices]
+
+    # splitting data in 80% training, 20% validation, 10% test
+    a = int(fraction*n)
+    data_train = data[a:]
+    data_val = data[:a]
+
+    t_train = t[a:]
+    t_val = t[:a]
+    
+    return data_train, t_train, data_val, t_val
