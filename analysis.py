@@ -3,6 +3,7 @@ import pandas as pd
 import sys
 from classifier import MLPBinary
 
+
 # LOADING TEST DATA
 L = int(sys.argv[1])
 print(L)
@@ -47,7 +48,7 @@ t_test = (temp_test > T_CRIT).astype(int)
 
 
 
-dimensions = [20, 32, 40, 56, 68, 80, 88, 96, 100]
+dimensions = np.arange(4,120,4).astype(int)
 tolerance = 1e-4
 activation = 'relu'
 lr = 0.01
@@ -57,33 +58,34 @@ solver = 'sgd'
 alpha = 0.1 
 power_t = 0.5
 n_epochs_no_update = 5
-
+flattened = data_test.reshape(-1, L*L)
 
 accuracy = []
 acc_std = []
 
-for dim in dimensions:
-    clf = MLPBinary(dim_hidden=dim,tolerance=tolerance,activation='relu', lr=lr, batch_size=batch_size, momentum=momentum, solver='sgd', alpha=alpha, power_t=power_t, n_epochs_no_update=n_epochs_no_update)
+for j in range(dimensions.shape[0]):
+    clf = MLPBinary(dim_hidden=dimensions[j],tolerance=tolerance,activation='relu', lr=lr, batch_size=batch_size, momentum=momentum, solver='sgd', alpha=alpha, power_t=power_t, n_epochs_no_update=n_epochs_no_update)
     
     clf.fit(data_train, t_train, X_val=data_val, t_val=t_val)
 
     # PREDICTION ON DATA SET to have mean
-    flattened = data_test.reshape(-1, L*L)
+    z = []
+    # accuracy on test set
+    for i in range(10):
+        acc = clf.score(data_test[i], t_test[i])
+        z.append(acc)
+    accuracy.append(np.mean(z)) # append mean and std of the 
+    acc_std.append(np.std(z, ddof=1) / np.sqrt(10))
 
-    acc = clf.score(flattened, t_test.reshape(-1,))
-
-    accuracy.append(np.mean(acc)) # append mean and std of the 
-    acc_std.append(np.std(acc, ddof=1) / np.sqrt(10))
-
-    print(f"Trained classifer dim_hidden = {dim}")
+    print(f"Trained classifer dim_hidden = {dimensions[j]}")
 
 df = pd.DataFrame( 
-    {"acc mean": accuracy,
+    {"dim_hidden": dimensions,
+        "acc mean": accuracy,
     "acc std": acc_std},
-    index=dimensions
 )
 
-df.to_csv('accuracy - dimensions')
+df.to_csv('accuracy - dimensions.csv')
 
 
 

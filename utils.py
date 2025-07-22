@@ -86,3 +86,34 @@ def resize_data_test(L):
     np.save(f"data/{L}_test", data)
     np.save(f"data/{L}_test_temp", temp)
 
+def load_train_data(L, mode='all'):
+    """
+    load training data and returns data_train, t_train, data_val, t_val
+    input: L= size, mode='all', 'cut'
+    """
+    if mode == 'all':
+        T_CRIT = 2.2691853 # k_b * T_C / J  with k_b=1, J = interaction constant
+        data = np.load(f"data/{L}_test_tanti.npy").reshape(-1, 100)
+        temps = np.load(f"data/{L}_temp_tanti.npy").reshape(-1,)
+        n = data.shape[0]
+        # target value
+        t = (temps > T_CRIT).astype(int)
+
+        # DATA Shuffling
+        rng = np.random.default_rng()
+        indices = np.arange(data.shape[0])
+        rng.shuffle(indices)
+
+        data = data[indices]
+        t = t[indices]
+        temps = temps[indices]
+
+        # splitting data in 80% training, 20% validation
+        a = int(0.8*n)
+        data_train = data[:a]
+        data_val = data[a:]
+
+        t_train = t[:a]
+        t_val = t[a:]
+
+        return data_train, t_train, data_val, t_val
