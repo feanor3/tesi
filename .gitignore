@@ -7,4 +7,5 @@ pdf/
 data_generation/
 dummy_data.py
 DOMANDE.ipynb
-
+*.csv
+*png

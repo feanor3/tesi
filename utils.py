@@ -135,7 +135,7 @@ def load_train_data(L, mode='all'):
     
     if mode == 'cut':
         min_bound = 1.9
-        max_bound = 2.6
+        max_bound = 2.5
         T_CRIT = 2.2691853 # k_b * T_C / J  with k_b=1, J = interaction constant
         data = np.load(f"data/{L}_test_tanti.npy")#.reshape(-1, 100)
         temps = np.load(f"data/{L}_temp_tanti.npy")#.reshape(-1, 1)
@@ -172,7 +172,7 @@ def load_train_data(L, mode='all'):
         data_test = np.load(f"./data/{L}_test.npy")         # shape (10, 24, 100)
 
         # Create mask for filtering along axis 1
-        mask = (temp_test > max_bound) | (temp_test < 2.2)        # shape (10, 24), bool
+        mask = (temp_test > max_bound) | (temp_test < min_bound)        # shape (10, 24), bool
 
         # Filter each group, preserving the first dimension
         filtered_temps = [temp_test[i][mask[i]] for i in range(temp_test.shape[0])]  # list of arrays, each (something,)

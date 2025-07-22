@@ -102,8 +102,8 @@ class MLPBinary():
         
         for e in range(self.epochs):
 
-            if time.time()-t_start > 60*2:
-                print("time exceedeed")
+            if time.time()-t_start > 60*5:
+                print("time exceeded")
                 break
             
             if self.solver == 'sgd':
