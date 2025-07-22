@@ -4,7 +4,8 @@ import sys
 from classifier import MLPBinary
 
 # LOADING TEST DATA
-L = sys.argv[0]
+L = sys.argv[1]
+print(L)
 T_CRIT = 2.2691853 # k_b * T_C / J  with k_b=1, J = interaction constant
 
 data = np.load(f"data/{L}_test_tanti.npy").reshape(-1, 100)
@@ -47,14 +48,14 @@ t_test = (temp_test > T_CRIT).astype(int)
 
 
 dimensions = [20, 32, 40, 56, 68, 80, 88, 96, 100]
-tolerance=1e-4, 
-activation='relu', 
-lr=0.01, 
-batch_size=200, 
-momentum=0, 
-solver='sgd', 
-alpha=0.1, 
-power_t=0.5
+tolerance = 1e-4
+activation = 'relu'
+lr = 0.01
+batch_size = 200
+momentum = 0.8
+solver = 'sgd' 
+alpha = 0.1 
+power_t = 0.5
 n_epochs_no_update = 5
 
 
@@ -62,16 +63,7 @@ accuracy = []
 acc_std = []
 
 for dim in dimensions:
-    clf = MLPBinary(dim_hidden=dim, 
-                    tolerance=tolerance, 
-                    activation='relu', 
-                    lr=lr, 
-                    batch_size=batch_size, 
-                    momentum=momentum, 
-                    solver='sgd', 
-                    alpha=alpha, 
-                    power_t=power_t,
-                    n_epochs_no_update=n_epochs_no_update)
+    clf = MLPBinary(dim_hidden=dim,tolerance=tolerance,activation='relu', lr=lr, batch_size=batch_size, momentum=momentum, solver='sgd', alpha=alpha, power_t=power_t, n_epochs_no_update=n_epochs_no_update)
     
     clf.fit(data_train, t_train, X_val=data_val, t_val=t_val)
 
