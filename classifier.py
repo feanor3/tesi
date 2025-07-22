@@ -140,7 +140,7 @@ class MLPBinary():
                 else: 
                     current_epochs_no_update = 0
                 
-            if e > 3 and val_loss[e] > min(val_loss) + 1e-3:
+            if e > 10 and val_loss[e] > min(val_loss) + 1e-3:
                 break
             
             
