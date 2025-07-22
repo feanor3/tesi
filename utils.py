@@ -116,4 +116,79 @@ def load_train_data(L, mode='all'):
         t_train = t[:a]
         t_val = t[a:]
 
-        return data_train, t_train, data_val, t_val
+        # loading test data
+        temp_test = np.load(f"./data/{L}_test_temp.npy")
+        data_test = np.load(f"./data/{L}_test.npy")
+
+
+        # sort data into ascending order according to temperatures
+        # potrei metterlo in utils
+
+        index = np.argsort(temp_test, axis=1)
+        temp_test = np.sort(temp_test, axis=1)
+        index_expanded = index[..., np.newaxis]
+        data_test = np.take_along_axis(data_test, index_expanded, axis=1)
+
+        t_test = (temp_test > T_CRIT).astype(int)
+
+        return data_train, t_train, data_val, t_val, data_test, t_test
+    
+    if mode == 'cut':
+        min_bound = 1.9
+        max_bound = 2.6
+        T_CRIT = 2.2691853 # k_b * T_C / J  with k_b=1, J = interaction constant
+        data = np.load(f"data/{L}_test_tanti.npy")#.reshape(-1, 100)
+        temps = np.load(f"data/{L}_temp_tanti.npy")#.reshape(-1, 1)
+
+        # target value
+        t = ((temps > max_bound) | (temps < min_bound)).astype(int)
+
+        # removing data close to T_CRIT
+        idx = np.where(t==1)
+        data = data[idx]
+        temps = temps[idx]
+        n = data.shape[0]
+        t = (temps > T_CRIT).astype(int)
+
+        # DATA Shuffling
+        rng = np.random.default_rng()
+        indices = np.arange(data.shape[0])
+        rng.shuffle(indices)
+
+        data = data[indices]
+        t = t[indices]
+        temps = temps[indices]
+
+        # splitting data in 80% training, 20% validation, 10% test
+        a = int(0.8*n)
+        data_train = data[:a]
+        data_val = data[a:]
+
+        t_train = t[:a]
+        t_val = t[a:]
+
+        # loading data for testing
+        temp_test = np.load(f"./data/{L}_test_temp.npy")    # shape (10, 24)
+        data_test = np.load(f"./data/{L}_test.npy")         # shape (10, 24, 100)
+
+        # Create mask for filtering along axis 1
+        mask = (temp_test > max_bound) | (temp_test < 2.2)        # shape (10, 24), bool
+
+        # Filter each group, preserving the first dimension
+        filtered_temps = [temp_test[i][mask[i]] for i in range(temp_test.shape[0])]  # list of arrays, each (something,)
+        filtered_data = [data_test[i][mask[i]] for i in range(data_test.shape[0])]   # list of arrays, each (something, 100)
+
+        # Sort within each group
+        for i in range(len(filtered_temps)):
+            sort_idx = np.argsort(filtered_temps[i])
+            filtered_temps[i] = filtered_temps[i][sort_idx]
+            filtered_data[i] = filtered_data[i][sort_idx]
+
+        # Optionally, convert lists to arrays for further processing
+        filtered_temps = np.array(filtered_temps)  # shape (10, something)
+        filtered_data = np.array(filtered_data)    # shape (10, something, 100)
+        temp_test = filtered_temps
+        data_test = filtered_data
+        t_test = (temp_test > T_CRIT).astype(int)
+
+        return data_train, t_train, data_val, t_val, data_test, t_test
