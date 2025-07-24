@@ -101,13 +101,12 @@ class MLPBinary():
         np.random.seed(25080)
 
         init_bound = np.sqrt(factor / (dim_in + self.dim_hidden))
-        a = np.random.uniform(-init_bound, init_bound, (dim_in, self.dim_hidden))
-        b = np.random.uniform(-init_bound, init_bound, (dim_in, 1))
+        a = np.random.uniform(-init_bound, init_bound, (dim_in, self.dim_hidden // 2))
+        b = np.random.uniform(-init_bound, init_bound, (dim_in, 1)) # bias
         self.weights1 = np.concat((b, a,-a), axis = 1) # [tutti pesi neurone, fino al neurone]
 
-        dim_out2 = self.dim_hidden // 2 # combino i dati                            
-        # self.weights2 = np.ones((self.dim_hidden + 1, dim_out2))
-
+        # i don't need self.weight2 because I just do a sum over the inputs and no weights are updates
+        dim_out2 = self.dim_hidden // 2
         init_bound = np.sqrt(factor / (self.dim_out2 + dim_out))                               
         self.weights3 = np.random.uniform(-init_bound, init_bound, (dim_out2 +1, dim_out))
 
@@ -226,7 +225,7 @@ class MLPBinary():
 
          # in questo caso no bias perchè faccio solo pooling
         dim2 = self.dim_in // 2
-        a2 = np.sum # pooling
+        a2 = (a1[:dim2] + a1[dim2]) / 2 # pooling
         a2_bias = add_bias(a2, self.bias)
 
         z3 = a2_bias @ self.weights3
