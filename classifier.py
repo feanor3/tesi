@@ -103,7 +103,7 @@ class MLPBinary():
         
         for e in range(self.epochs):
 
-            if time.time()-t_start > 60*5:
+            if time.time()-t_start > 60*3:
                 print("time exceeded")
                 break
             
@@ -184,7 +184,6 @@ class MLPBinary():
 
             
 
-    def update_lr(self, time_step):
     def update_lr(self, time_step):
         """
         decrease learnign rate after patience"""
