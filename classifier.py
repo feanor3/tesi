@@ -30,7 +30,7 @@ def add_bias(X, bias):
 class MLPBinary():
     """A multi-layer neural network with one hidden layer"""
     
-    def __init__(self, bias=-1, dim_hidden = 6, tolerance=1e-4, activation='relu', solver='sgd', lr = 1e-4, batch_size=100, epochs=100, n_epochs_no_update = 2, momentum = 0.9, alpha=1e-3, power_t = 0.001):
+    def __init__(self, bias=-1, dim_hidden = 6, tolerance=1e-4, activation='relu', solver='sgd', lr = 1e-4, batch_size=100, epochs=100, n_epochs_no_update = 2, momentum = 0.9, alpha=1e-3, power_t = 0.001, symmetric_weights=False):
         """Intialize the hyperparameters"""
         self.bias = bias
         # Dimensionality of the hidden layer
@@ -47,8 +47,10 @@ class MLPBinary():
         self.alpha = alpha # strength of regularization term
         # self.tau= tau
         self.power_t = power_t
-        self.t_ = 0 # base for lr update
-        self.t_ = 0 # base for lr update
+        self.symmetric_weights = symmetric_weights
+        self.t_ = 0
+
+
     
         
         if activation == 'relu':
@@ -91,9 +93,17 @@ class MLPBinary():
         factor = 6.0
         np.random.seed(25080)
 
-        init_bound = np.sqrt(factor / (dim_in + 1 + self.dim_hidden +1))
-        self.weights1 = np.random.uniform(-init_bound, init_bound, (dim_in +1, self.dim_hidden))
-                                        
+        if self.symmetric_weights: # rename variables  | check weights initialization
+
+            z = X_train.shape[1] // 2
+            init_bound = np.sqrt(factor / (z + 1 + self.dim_hidden))
+            self.weights1 = np.random.uniform(-init_bound, init_bound, (dim_in +1, self.dim_hidden))
+            self.weights1[:, z:] = -self.weights1[:, :z]
+
+        else:
+            init_bound = np.sqrt(factor / (dim_in + 1 + self.dim_hidden +1))
+            self.weights1 = np.random.uniform(-init_bound, init_bound, (dim_in +1, self.dim_hidden))
+                                            
         init_bound = np.sqrt(factor / (self.dim_hidden + 1 + dim_out))                               
         self.weights2 = np.random.uniform(-init_bound, init_bound, (self.dim_hidden +1, dim_out))
         
