@@ -193,7 +193,7 @@ class MLPBinary():
         # The delta term on the output node:
         delta3 = (outputs - t_train) # last layer
         delta2 = (delta3 @ self.weights3.T)[:,1:] * self.activ_diff[2](z3)
-        delta1 = (delta2 @ self.weights2.T ) * self.activ_diff[1](z2)
+        delta1 = (delta2 @ self.weights2.T) * self.activ_diff[1](z2)
 
         ''' # The delta terms at the output of the hidden layer:
         hiddenout_diffs = out_deltas @ self.weights2.T

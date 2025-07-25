@@ -93,16 +93,8 @@ class MLPBinary():
         factor = 6.0
         np.random.seed(25080)
 
-        if self.symmetric_weights: # rename variables  | check weights initialization
-
-            z = X_train.shape[1] // 2
-            init_bound = np.sqrt(factor / (z + 1 + self.dim_hidden))
-            self.weights1 = np.random.uniform(-init_bound, init_bound, (dim_in +1, self.dim_hidden))
-            self.weights1[:, z:] = -self.weights1[:, :z]
-
-        else:
-            init_bound = np.sqrt(factor / (dim_in + 1 + self.dim_hidden +1))
-            self.weights1 = np.random.uniform(-init_bound, init_bound, (dim_in +1, self.dim_hidden))
+        init_bound = np.sqrt(factor / (dim_in + 1 + self.dim_hidden +1))
+        self.weights1 = np.random.uniform(-init_bound, init_bound, (dim_in +1, self.dim_hidden))
                                             
         init_bound = np.sqrt(factor / (self.dim_hidden + 1 + dim_out))                               
         self.weights2 = np.random.uniform(-init_bound, init_bound, (self.dim_hidden +1, dim_out))
@@ -209,7 +201,8 @@ class MLPBinary():
         """ 
         Perform one forward step. 
         Return a pair consisting of the outputs of the hidden_layer
-        and the outputs on the final layer"""
+        and the outputs on the final layer
+        X has bias"""
         
         hidden_outs = self.activ(X @ self.weights1)
         hidden_outs_bias = add_bias(hidden_outs, self.bias)
