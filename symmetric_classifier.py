@@ -239,18 +239,20 @@ class MLPBinary():
         Return a pair consisting of the outputs of the hidden_layer
         and the outputs on the final layer"""
         
+      # One epoch
+        # The forward step:
         z1 = X @ self.weights1
         a1 = self.activ[0](z1)
         #a1_bias = add_bias(a1, self.bias)
 
-         # in questo caso no bias perchè faccio solo pooling
+        # in questo caso no bias perchè faccio solo pooling
         dim2 = self.dim_in // 2
         z2 = a1 @ self.weights2
         a2 = self.activ[1](z2) # pooling
-        a2_bias = add_bias(a2, self.bias)
+        a2 = add_bias(a2, self.bias)
 
-        z3 = a2_bias @ self.weights3
-        outputs = self.activ[2](z3)  # final output with logistic
+        z3 = a2 @ self.weights3
+        a3 = outputs = self.activ[2](z3)  # final output with logistic
        
         return 0, outputs
 

@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 def resize_data(L, lt, ut):
 
@@ -36,9 +37,9 @@ def resize_data_test(L):
     In L_test there are 10 simulations concatenated: the function divide the file in 10 pieces and each of the pieces is resized like in resize_data()
     '''  
     
-    N = 10 # times algorithm has been run
+    N = 6 # times algorithm has been run
     a = []
-    for i in range(N):
+    for i in range(6):
         dff =  pd.read_csv(f"./data_generation/data/tmp/{i}.csv", header = None)
         a.append(dff)
 
@@ -64,7 +65,7 @@ def resize_data_test(L):
     # c++ code creates (L*temperatures, L) csv file
 
     # n = configurations generated at different temperatures
-    n = int(df.shape[0] / L / N) 
+    n = int(df.shape[0] //(L * N) )
     # data where each row is data-point and there are L*L columns corresponding to the whole lattice
     data = np.zeros((N,n, L*L))
     temp = np.zeros((N,n))
@@ -131,7 +132,7 @@ def load_train_data(L, mode='all'):
 
         t_test = (temp_test > T_CRIT).astype(int)
 
-        return data_train, t_train, data_val, t_val, data_test, t_test
+        return data_train, t_train, data_val, t_val, data_test, t_test, 
     
     if mode == 'cut':
         min_bound = 1.9
@@ -214,3 +215,31 @@ def get_training_data(data, t, fraction):
     t_val = t[:a]
     
     return data_train, t_train, data_val, t_val
+
+def train_classifier(L, mode, classifier):
+    '''mode: all data, cut without data close to Tc
+    classifer: must be classifier class already initialized
+    testing is done on the noteboks'''
+    if mode == 'all':
+        data_train, t_train, data_val, t_val, _, _ = load_train_data(L, mode = 'all')
+
+        classifier.fit(data_train, t_train, X_val=data_val, t_val=t_val)
+    elif mode == 'cut':
+        data_train, t_train, data_val, t_val, _, _ = load_train_data(L, mode = 'cut')
+
+        classifier.fit(data_train, t_train, X_val=data_val, t_val=t_val)
+
+
+    # plotting accuracy and loss
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(9,3))
+    E = len(classifier.train_acc) 
+    ax1.plot(np.arange(E), classifier.train_acc)
+    ax1.plot(np.arange(E), classifier.val_acc)
+    ax1.legend(["train_acc", "val_acc"])
+
+    ax2.plot(np.arange(E), classifier.train_loss)
+    ax2.plot(np.arange(E), classifier.val_loss)
+    ax2.set_ylabel("Loss"), ax2.set_xlabel("Accuracy")
+    ax1.set_xlabel("Epochs"), ax2.set_xlabel("Epochs")
+    ax2.legend(["train_loss", "val_loss"])
+
