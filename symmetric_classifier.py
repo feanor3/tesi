@@ -20,7 +20,7 @@ def relu_diff(x):
 def pool(x):
     return x/2
 
-def pool_diff():
+def pool_diff(x):
     return 1/2
 
 def add_bias(X, bias):
@@ -102,12 +102,16 @@ class MLPBinary():
 
         init_bound = np.sqrt(factor / (dim_in + self.dim_hidden))
         a = np.random.uniform(-init_bound, init_bound, (dim_in, self.dim_hidden // 2))
-        b = np.random.uniform(-init_bound, init_bound, (dim_in, 1)) # bias
-        self.weights1 = np.concat((b, a,-a), axis = 1) # [tutti pesi neurone, fino al neurone]
+        b = np.random.uniform(-init_bound, init_bound, (1, dim_in)) # bias
+        c = np.concatenate((a,-a), axis = 1)
+        self.weights1 = np.concatenate((b,c)) # [tutti pesi neurone, fino al neurone]
 
-        # i don't need self.weight2 because I just do a sum over the inputs and no weights are updates
+        # i
         dim_out2 = self.dim_hidden // 2
-        init_bound = np.sqrt(factor / (self.dim_out2 + dim_out))                               
+        a = np.identity(dim_out2)
+        self.weights2 = np.concatenate((a, a))
+
+        init_bound = np.sqrt(factor / (dim_out2 + dim_out))                               
         self.weights3 = np.random.uniform(-init_bound, init_bound, (dim_out2 +1, dim_out))
 
 
@@ -164,41 +168,57 @@ class MLPBinary():
             self.epochs += 1
 
     def update(self, X, t_train):
-            ''''X unbiased data, T_train gold value'''
-
-            X_bias = add_bias(X, self.bias)
-            # One epoch
-            # The forward step:
-            hidden_outs, outputs = self.forward(X_bias)
-            # The delta term on the output node:
-            delta3 = (outputs - t_train)
-
-            grad3 =  @ delta3
-
-
-            # The delta terms at the output of the hidden layer:
-            hiddenout_diffs = out_deltas @ self.weights2.T
-            # The deltas at the input to the hidden layer:
-            #hiddenout_diffs = add_bias(hiddenout_diffs, self.bias)
-            hiddenact_deltas = (hiddenout_diffs[:, 1:] * 
-                                self.activ_diff(hidden_outs[:, 1:]))  
-
-            grad1 = X_bias.T @ hiddenact_deltas
-            grad2 = hidden_outs.T @ out_deltas
+        ''''X unbiased data, T_train gold value'''
 
 
 
-            # Update the weights:
-            if self.solver == 'sgd':
-                self.m1 = self.momentum * self.m1 - self.lr * (grad1 / self.batch_size + self.alpha*self.weights1)
-                self.m2 = self.momentum * self.m2 - self.lr * (grad2 / self.batch_size + self.alpha*self.weights2)
-    
-                self.weights1 +=  self.m1
-                self.weights2 +=  self.m2
-               
-            else:                
-                self.weights1 -= self.lr * grad1
-                self.weights2 -= self.lr * grad2
+
+        X_bias = add_bias(X, self.bias)
+        # One epoch
+        # The forward step:
+        z1 = X_bias @ self.weights1
+        a1 = self.activ[0](z1)
+        #a1_bias = add_bias(a1, self.bias)
+
+        # in questo caso no bias perchè faccio solo pooling
+        dim2 = self.dim_in // 2
+        z2 = a1 @ self.weights2
+        a2 = self.activ[1](z2) # pooling
+        a2 = add_bias(a2, self.bias)
+
+        z3 = a2 @ self.weights3
+        a3 = outputs = self.activ[2](z3)  # final output with logistic
+
+        
+        # The delta term on the output node:
+        delta3 = (outputs - t_train) # last layer
+        delta2 = (delta3 @ self.weights3.T)[:,1:] * self.activ_diff[2](z3)
+        delta1 = (delta2 @ self.weights2.T ) * self.activ_diff[1](z2)
+
+        ''' # The delta terms at the output of the hidden layer:
+        hiddenout_diffs = out_deltas @ self.weights2.T
+        # The deltas at the input to the hidden layer:
+        #hiddenout_diffs = add_bias(hiddenout_diffs, self.bias)
+        hiddenact_deltas = (hiddenout_diffs[:, 1:] * 
+        self.activ_diff(hidden_outs[:, 1:]))'''
+
+        grad3 = a2.T @ delta3
+        #grad2 = a1.T @ delta2
+        grad1 = X_bias.T @ delta1
+
+
+
+        # Update the weights:
+        if self.solver == 'sgd':
+            self.m1 = self.momentum * self.m1 - self.lr * (grad1 / self.batch_size + self.alpha*self.weights1)
+            self.m3 = self.momentum * self.m3 - self.lr * (grad3 / self.batch_size + self.alpha*self.weights3)
+            # second layer not updated, is jus pooling
+            self.weights1 +=  self.m1
+            self.weights3 +=  self.m3
+            
+        else:                
+            self.weights1 -= self.lr * grad1
+            self.weights3 -= self.lr * grad3
 
             
 
@@ -225,15 +245,14 @@ class MLPBinary():
 
          # in questo caso no bias perchè faccio solo pooling
         dim2 = self.dim_in // 2
-        a2 = (a1[:dim2] + a1[dim2]) / 2 # pooling
+        z2 = a1 @ self.weights2
+        a2 = self.activ[1](z2) # pooling
         a2_bias = add_bias(a2, self.bias)
 
         z3 = a2_bias @ self.weights3
-        a3 = self.activ[2](z3)
-
-        outputs = logistic(hidden_outs_bias @ self.weights2)
+        outputs = self.activ[2](z3)  # final output with logistic
        
-        return hidden_outs_bias, outputs
+        return 0, outputs
 
     def compute_loss(self, y, t):
         """
