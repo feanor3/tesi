@@ -37,9 +37,9 @@ def resize_data_test(L):
     In L_test there are 10 simulations concatenated: the function divide the file in 10 pieces and each of the pieces is resized like in resize_data()
     '''  
     
-    N = 6 # times algorithm has been run
+    N = 7 # times algorithm has been run
     a = []
-    for i in range(6):
+    for i in range(N):
         dff =  pd.read_csv(f"./data_generation/data/tmp/{i}.csv", header = None)
         a.append(dff)
 
@@ -84,8 +84,8 @@ def resize_data_test(L):
         
         kk += 1
     
-    np.save(f"data/{L}_test", data)
-    np.save(f"data/{L}_test_temp", temp)
+    np.save(f"./data_generation/data/tmp/{L}_test", data)
+    np.save(f"./data_generation/data/tmp/{L}_test_temp", temp)
 
 def load_train_data(L, mode='all'):
     """
@@ -94,8 +94,8 @@ def load_train_data(L, mode='all'):
     """
     if mode == 'all':
         T_CRIT = 2.2691853 # k_b * T_C / J  with k_b=1, J = interaction constant
-        data = np.load(f"data/{L}_test_tanti.npy").reshape(-1, 100)
-        temps = np.load(f"data/{L}_temp_tanti.npy").reshape(-1,)
+        data = np.load(f"data/{L}_train.npy").reshape(-1, 100)
+        temps = np.load(f"data/{L}_train_temp.npy").reshape(-1,)
         n = data.shape[0]
         # target value
         t = (temps > T_CRIT).astype(int)
@@ -134,11 +134,11 @@ def load_train_data(L, mode='all'):
         return data_train, t_train, data_val, t_val, data_test, t_test, 
     
     if mode == 'cut':
-        min_bound = 1.9
+        min_bound = 2.0
         max_bound = 2.5
         T_CRIT = 2.2691853 # k_b * T_C / J  with k_b=1, J = interaction constant
-        data = np.load(f"data/{L}_test_tanti.npy")#.reshape(-1, 100)
-        temps = np.load(f"data/{L}_temp_tanti.npy")#.reshape(-1, 1)
+        data = np.load(f"data/{L}_train.npy")#.reshape(-1, 100)
+        temps = np.load(f"data/{L}_train_temp.npy")#.reshape(-1, 1)
 
         # target value
         t = ((temps > max_bound) | (temps < min_bound)).astype(int)
@@ -205,7 +205,7 @@ def get_training_data(data, t, fraction):
     t = t[indices]
     #temps = temps[indices]
 
-    # splitting data in 80% training, 20% validation, 10% test
+    # splitting data in 80% training, 20% validation
     a = int(fraction*n)
     data_train = data[a:]
     data_val = data[:a]

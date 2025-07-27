@@ -111,12 +111,20 @@ class MLPBinary():
             
             if self.solver == 'sgd':
                 # selecting random elements of X_train_bias as batch
+                # dividing data in M>0 and M<0 so that the batch is 
+                # distributed evenly for the magnetization
+               # X_M_pos = X_train[np.mean(X_train, axis=1) > 0]
+                #X_M_neg = X_train[np.mean(X_train, axis=1) < 0]
+
+
                 idx = np.random.permutation(self.N)
                 
                 # this ensures that training is done over all data per epoch
-                for i in range(0, self.N, self.batch_size):
+                for i in range(0, self.N, self.batch_size):                  
                     X_batch = X_train[idx[i:i+self.batch_size], :]
                     T_batch = T_train[idx[i:i+self.batch_size]]
+
+                    
 
                     self.update(X_batch, T_batch)
                 
@@ -143,7 +151,7 @@ class MLPBinary():
                 else: 
                     current_epochs_no_update = 0
                 
-            if e > 10 and val_loss[e] > min(val_loss) + 1e-3:
+            if e > 10 and val_loss[e] > min(val_loss) + 1e-1:
                 break
             
             
