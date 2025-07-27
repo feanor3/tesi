@@ -121,7 +121,6 @@ def load_train_data(L, mode='all'):
         temp_test = np.load(f"./data/{L}_test_temp.npy")
         data_test = np.load(f"./data/{L}_test.npy")
 
-
         # sort data into ascending order according to temperatures
         # potrei metterlo in utils
 
@@ -222,12 +221,11 @@ def train_classifier(L, mode, classifier):
     testing is done on the noteboks'''
     if mode == 'all':
         data_train, t_train, data_val, t_val, _, _ = load_train_data(L, mode = 'all')
-
-        classifier.fit(data_train, t_train, X_val=data_val, t_val=t_val)
     elif mode == 'cut':
         data_train, t_train, data_val, t_val, _, _ = load_train_data(L, mode = 'cut')
 
-        classifier.fit(data_train, t_train, X_val=data_val, t_val=t_val)
+
+    classifier.fit(data_train, t_train, X_val=data_val, t_val=t_val)    
 
 
     # plotting accuracy and loss
@@ -243,3 +241,4 @@ def train_classifier(L, mode, classifier):
     ax1.set_xlabel("Epochs"), ax2.set_xlabel("Epochs")
     ax2.legend(["train_loss", "val_loss"])
 
+    return classifier
