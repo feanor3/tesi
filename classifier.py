@@ -113,20 +113,24 @@ class MLPBinary():
                 # selecting random elements of X_train_bias as batch
                 # dividing data in M>0 and M<0 so that the batch is 
                 # distributed evenly for the magnetization
-               # X_M_pos = X_train[np.mean(X_train, axis=1) > 0]
+               
+                #X_M_pos = X_train[np.mean(X_train, axis=1) > 0]
                 #X_M_neg = X_train[np.mean(X_train, axis=1) < 0]
-
-
                 idx = np.random.permutation(self.N)
+
+                #idx_pos = np.random.permutation(X_M_pos.shape[0])
+                #idx_neg = np.random.permutation(X_M_neg.shape[0])
                 
                 # this ensures that training is done over all data per epoch
                 for i in range(0, self.N, self.batch_size):                  
                     X_batch = X_train[idx[i:i+self.batch_size], :]
                     T_batch = T_train[idx[i:i+self.batch_size]]
 
+                    '''pos = len(np.mean(X_batch, axis=1) > 0)
+                    neg = len(np.mean(X_batch, axis=1) < 0)'''
                     
-
-                    self.update(X_batch, T_batch)
+                    
+                    self.update(X_batch, T_batch)             
                 
             else:
                 self.update(X_train, T_train)
